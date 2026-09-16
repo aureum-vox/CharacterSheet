@@ -1,0 +1,9 @@
+﻿# Working directories
+temp/
+logs/
+
+# Python virtual environments & cache
+__pycache__/
+*.pyc
+.venv/
+venv/
