@@ -62,11 +62,11 @@ def fetch_json(endpoint):
 def get_2024_class_data(class_endpoint):
     """
     Fetches class data and filters it for the 2024 rules (XPHB).
-    Example class_endpoint: 'class/class-fighter.json'
+    Returns a tuple: (class_data, feature_data_array)
     """
     data = fetch_json(class_endpoint)
     if not data:
-        return None
+        return None, None
         
     # Isolate the 2024 Player's Handbook version of the class
     class_data_2024 = next(
@@ -76,7 +76,8 @@ def get_2024_class_data(class_endpoint):
     
     if class_data_2024:
         logger.info(f"Successfully extracted 2024 {class_data_2024['name']} data.")
-        return class_data_2024
+        # RETURN BOTH: The specific class object AND the root feature array
+        return class_data_2024, data.get("classFeature", [])
     else:
         logger.warning(f"No 2024 rules (XPHB) found in {class_endpoint}.")
-        return None
+        return None, None

@@ -63,12 +63,16 @@ class Character:
         # Placeholder: This is where we will hook in the JSON parser 
         # to fetch and append the new features for this specific class and level.
 
-    def add_feature(self, feature_name, source, description=""):
+    def add_feature(self, feature_name, source, description="", uses=0, choices=None):
         """Appends a new feature to the character."""
         feature = {
             "name": feature_name, 
             "source": source, 
-            "description": description
+            "description": description,
+            "uses": uses,
+            "choices": choices or [] 
         }
+        # DEBUG LOG 2: Check what is actually saved in memory
+        print(f"[DEBUG 2] Saved to memory -> {feature_name} | Desc length: {len(feature['description'])}")
+        
         self.features.append(feature)
-        logger.debug(f"Added feature to {self.name}: {feature_name} ({source})")

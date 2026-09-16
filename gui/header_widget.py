@@ -47,6 +47,7 @@ class HeaderWidget(QFrame):
         
         # --- 3. Level Up Button ---
         self.level_up_btn = QPushButton("Level Up")
+        self.level_up_btn.setToolTip("Click to advance your character to the next level!")
         self.level_up_btn.setMinimumHeight(40) # Make it big and clickable
         # We will connect this button's click event to our Character class in Phase 4
         
