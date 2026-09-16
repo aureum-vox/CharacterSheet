@@ -21,6 +21,8 @@ class Character:
         
         # Features gained from classes, species, backgrounds, and feats
         self.features = []
+        self.coins = {"CP": 0, "SP": 0, "EP": 0, "GP": 15, "PP": 0}
+        self.inventory = []
         
         logger.info(f"Initialized new character: {self.name}")
 
@@ -76,3 +78,11 @@ class Character:
         print(f"[DEBUG 2] Saved to memory -> {feature_name} | Desc length: {len(feature['description'])}")
         
         self.features.append(feature)
+
+    def add_item(self, name, quantity, weight):
+        """Appends a new item to the character's inventory."""
+        self.inventory.append({
+            "name": name, 
+            "quantity": quantity, 
+            "weight": weight
+        })

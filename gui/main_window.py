@@ -3,7 +3,7 @@ from gui.ability_widget import AbilityWidget
 from gui.header_widget import HeaderWidget
 from gui.features_widget import FeaturesWidget
 from gui.level_up_dialog import LevelUpDialog
-from gui.inventory_widget import InventoryWidget
+from gui.inventory_widget import InventoryWidget, AddItemDialog
 import re
 
 # Import our Data Layer
@@ -90,6 +90,9 @@ class CharacterSheetWindow(QMainWindow):
         # --- Tab 3: Inventory ---
         self.inventory_area = InventoryWidget()
         self.tabs.addTab(self.inventory_area, "Inventory")
+        
+        # Connect the "Add Custom Item" button
+        self.inventory_area.add_item_btn.clicked.connect(self.prompt_add_item)
         
         # Add the tab system to the main column layout
         self.right_column.addWidget(self.tabs)
@@ -182,6 +185,14 @@ class CharacterSheetWindow(QMainWindow):
                     
         self.update_ui()
 
+    def prompt_add_item(self):
+        """Opens the Add Item dialog and updates the backend if accepted."""
+        dialog = AddItemDialog(self)
+        if dialog.exec():
+            name, qty, wt = dialog.get_data()
+            self.hero.add_item(name, qty, wt)
+            self.update_ui() # Refresh the whole UI to show the new item
+    
     def update_ui(self):
         """Syncs the visual GUI to match the internal character state."""
         
@@ -207,3 +218,6 @@ class CharacterSheetWindow(QMainWindow):
                 feat.get("uses", 0),
                 feat.get("choices", [])
             )
+
+        # Sync Inventory Tab
+        self.inventory_area.sync_data(self.hero.coins, self.hero.inventory)

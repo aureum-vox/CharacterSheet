@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, 
-    QWidget, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+    QWidget, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
+    QDialog, QFormLayout, QDialogButtonBox 
 )
 from PyQt6.QtCore import Qt
 
@@ -75,8 +76,22 @@ class InventoryWidget(QFrame):
         
         main_layout.addLayout(bottom_layout)
         
-        # Placeholder rows to demonstrate layout
-        self.load_placeholder_data()
+    def sync_data(self, coins_dict, inventory_list):
+        """Syncs the UI table and coins with the backend Character data."""
+        # 1. Update Coins
+        for coin, amount in coins_dict.items():
+            if coin in self.coins:
+                self.coins[coin].setText(str(amount))
+                
+        # 2. Update Table
+        self.table.setRowCount(len(inventory_list))
+        for row, item in enumerate(inventory_list):
+            self.table.setItem(row, 0, QTableWidgetItem(item["name"]))
+            self.table.setItem(row, 1, QTableWidgetItem(str(item["quantity"])))
+            self.table.setItem(row, 2, QTableWidgetItem(str(item["weight"])))
+            self.table.setItem(row, 3, QTableWidgetItem(str(item["quantity"] * item["weight"])))
+            
+        self.update_total_weight()
         
     def load_placeholder_data(self):
         """Loads sample inventory items for layout testing."""
@@ -108,3 +123,40 @@ class InventoryWidget(QFrame):
             except ValueError:
                 continue
         self.weight_label.setText(f"Total Weight: {total:.1f} lbs")
+
+class AddItemDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add New Item")
+        self.setFixedSize(250, 150)
+        
+        layout = QFormLayout(self)
+        
+        self.name_input = QLineEdit()
+        self.qty_input = QLineEdit("1")
+        self.wt_input = QLineEdit("0.0")
+        
+        layout.addRow("Item Name:", self.name_input)
+        layout.addRow("Quantity:", self.qty_input)
+        layout.addRow("Weight (lbs):", self.wt_input)
+        
+        # OK and Cancel Buttons
+        btn_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        btn_box.accepted.connect(self.accept)
+        btn_box.rejected.connect(self.reject)
+        layout.addWidget(btn_box)
+        
+    def get_data(self):
+        """Returns the typed data as a tuple: (name, qty, weight)"""
+        name = self.name_input.text().strip() or "Unknown Item"
+        try:
+            qty = int(self.qty_input.text())
+        except ValueError:
+            qty = 1
+            
+        try:
+            wt = float(self.wt_input.text())
+        except ValueError:
+            wt = 0.0
+            
+        return name, qty, wt
