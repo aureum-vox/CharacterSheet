@@ -22,7 +22,8 @@ class HeaderWidget(QFrame):
         name_label.setFont(small_bold)
         
         # Editable text box for the name
-        self.name_input = QLineEdit("Kael")
+        self.name_input = QLineEdit("")
+        self.name_input.setPlaceholderText("Enter Name...")
         name_font = self.name_input.font()
         name_font.setPointSize(14)
         name_font.setBold(True)
@@ -37,7 +38,7 @@ class HeaderWidget(QFrame):
         class_label.setFont(small_bold)
         
         # Read-only label for the class and level
-        self.class_level_display = QLabel("Fighter 1")
+        self.class_level_display = QLabel("Level 0")
         class_font = self.class_level_display.font()
         class_font.setPointSize(14)
         self.class_level_display.setFont(class_font)
@@ -47,12 +48,28 @@ class HeaderWidget(QFrame):
         
         # --- 3. Level Up Button ---
         self.level_up_btn = QPushButton("Level Up")
+        self.level_up_btn.setToolTip("Click to advance your character to the next level!")
         self.level_up_btn.setMinimumHeight(40) # Make it big and clickable
         # We will connect this button's click event to our Character class in Phase 4
+
+        # --- 4. HP Tracking ---
+        hp_layout = QVBoxLayout()
+        
+        self.hp_label = QLabel("HP: 0/0")
+        self.hit_dice_label = QLabel("Hit Dice: 0")
+        
+        hp_layout.addWidget(self.hp_label)
+        hp_layout.addWidget(self.hit_dice_label)
         
         # --- Assembly ---
         layout.addLayout(name_layout)
         layout.addSpacing(20) # Add a little breathing room between sections
         layout.addLayout(class_layout)
+        layout.addSpacing(20) 
+        layout.addLayout(hp_layout) # <--- Added the HP layout here
         layout.addStretch() # Pushes the button all the way to the right
         layout.addWidget(self.level_up_btn)
+
+    def update_hp(self, current_hp, max_hp, hit_dice_str):
+        self.hp_label.setText(f"<b>HP:</b> {current_hp}/{max_hp}")
+        self.hit_dice_label.setText(f"<b>Hit Dice:</b> {hit_dice_str}")
