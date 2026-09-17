@@ -4,6 +4,7 @@ from gui.header_widget import HeaderWidget
 from gui.features_widget import FeaturesWidget
 from gui.level_up_dialog import LevelUpDialog
 from gui.inventory_widget import InventoryWidget, AddItemDialog
+from gui.stats_widget import StatsWidget
 import re
 
 # Import our Data Layer
@@ -82,14 +83,22 @@ class CharacterSheetWindow(QMainWindow):
         # We assign our existing FeaturesWidget to the first tab
         self.features_area = FeaturesWidget()
         self.tabs.addTab(self.features_area, "Features & Traits")
+
+        # --- Tab 2: Stats, Saves & Skills ---
+        self.stats_area = StatsWidget()
+        self.tabs.addTab(self.stats_area, "Saves & Skills")
         
-        # --- Tab 2: Spells (Placeholder) ---
-        self.spells_area = QWidget()
-        self.tabs.addTab(self.spells_area, "Spells")
+        # Connect manual proficiency toggles
+        self.stats_area.save_toggled.connect(self.toggle_save)
+        self.stats_area.skill_toggled.connect(self.toggle_skill)
         
         # --- Tab 3: Inventory ---
         self.inventory_area = InventoryWidget()
         self.tabs.addTab(self.inventory_area, "Inventory")
+
+        # --- Tab 4: Spells (Placeholder) ---
+        self.spells_area = QWidget()
+        self.tabs.addTab(self.spells_area, "Spells")
         
         # Connect the "Add Custom Item" button
         self.inventory_area.add_item_btn.clicked.connect(self.prompt_add_item)
@@ -114,8 +123,9 @@ class CharacterSheetWindow(QMainWindow):
         if not dialog.exec():
             return 
             
-        # 2. Get the chosen class and optional name
+        # 2. Get the chosen class, optional name, and selected skills
         selected_class = dialog.get_selected_class()
+        selected_skills = dialog.get_selected_skills()
         
         if is_first_level:
             new_name = dialog.get_character_name()
@@ -128,9 +138,9 @@ class CharacterSheetWindow(QMainWindow):
             QMessageBox.critical(self, "Network Error", f"Failed to fetch {selected_class.capitalize()} data!")
             return
             
-        # 4. Level up the character internally
+        # 4. Level up the character internally, passing the selected skills
         class_name_formatted = selected_class.capitalize()
-        self.hero.level_up_class(class_name_formatted)
+        self.hero.level_up_class(class_name_formatted, selected_skills=selected_skills)
         new_level = self.hero.classes[class_name_formatted]
         
         # 5. Safely extract features
@@ -219,5 +229,21 @@ class CharacterSheetWindow(QMainWindow):
                 feat.get("choices", [])
             )
 
+        # Sync Header HP
+        self.header.update_hp(self.hero.current_hp, self.hero.hp_max, self.hero.get_hit_dice_string())
+        
+        # Sync Stats Tab
+        self.stats_area.sync_data(self.hero)
+
         # Sync Inventory Tab
         self.inventory_area.sync_data(self.hero.coins, self.hero.inventory)
+
+    def toggle_save(self, stat):
+        """Toggles a saving throw proficiency and refreshes UI."""
+        self.hero.toggle_save_proficiency(stat)
+        self.update_ui()
+        
+    def toggle_skill(self, skill):
+        """Toggles a skill proficiency and refreshes UI."""
+        self.hero.toggle_skill_proficiency(skill)
+        self.update_ui()
