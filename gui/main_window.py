@@ -2,9 +2,10 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QMes
 from gui.ability_widget import AbilityWidget
 from gui.header_widget import HeaderWidget
 from gui.features_widget import FeaturesWidget
-from gui.level_up_dialog import LevelUpDialog
+from gui.level_up_dialog import LevelUpDialog, SubclassDialog
 from gui.inventory_widget import InventoryWidget, AddItemDialog
 from gui.stats_widget import StatsWidget
+
 import re
 
 # Import our Data Layer
@@ -138,9 +139,25 @@ class CharacterSheetWindow(QMainWindow):
             QMessageBox.critical(self, "Network Error", f"Failed to fetch {selected_class.capitalize()} data!")
             return
             
-        # 4. Level up the character internally, passing the selected skills
+        # 4. Level up the character internally (MERGED LOGIC)
         class_name_formatted = selected_class.capitalize()
-        self.hero.level_up_class(class_name_formatted, selected_skills=selected_skills)
+        
+        # Calculate what level this specific class is about to become
+        current_class_level = self.hero.classes.get(class_name_formatted, 0)
+        new_class_level = current_class_level + 1
+        
+        subclass_name = None
+        if new_class_level == 3:
+            subclass_dialog = SubclassDialog(class_name_formatted, self)
+            if subclass_dialog.exec():
+                subclass_name = subclass_dialog.get_subclass()
+                
+        # Pass BOTH skills and subclass to the backend safely
+        self.hero.level_up_class(
+            class_name_formatted, 
+            selected_skills=selected_skills, 
+            subclass_name=subclass_name
+        )
         new_level = self.hero.classes[class_name_formatted]
         
         # 5. Safely extract features
@@ -213,10 +230,28 @@ class CharacterSheetWindow(QMainWindow):
         else:
             self.header.name_input.clear()
             
-        class_str = ", ".join([f"{c} {l}" for c, l in self.hero.classes.items()])
+        # Only set the text if the character actually has a name, 
+        # otherwise clear it so the placeholder text is visible.
+        if self.hero.name:
+            self.header.name_input.setText(self.hero.name)
+        else:
+            self.header.name_input.clear()
+            
+        # --- NEW SUBCLASS HEADER LOGIC ---
+        class_strings = []
+        for c, l in self.hero.classes.items():
+            sub = self.hero.subclasses.get(c)
+            if sub:
+                class_strings.append(f"{sub} {c} {l}")
+            else:
+                class_strings.append(f"{c} {l}")
+                
+        class_str = ", ".join(class_strings)
+        
         if not class_str:
             class_str = "Level 0 (Ready to Start)"
         self.header.class_level_display.setText(class_str)
+        # ---------------------------------
         
         self.features_area.clear_features()
         for feat in self.hero.features:

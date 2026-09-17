@@ -85,3 +85,49 @@ class LevelUpDialog(QDialog):
         if self.is_first_level:
             return [item.text() for item in self.skill_list.selectedItems()]
         return []
+
+class SubclassDialog(QDialog):
+    """Pops up when a character reaches Level 3 in a class."""
+    
+    SUBCLASSES_2024 = {
+        "Barbarian": ["Path of the Berserker", "Path of the Wild Heart", "Path of the World Tree", "Path of the Zealot"],
+        "Bard": ["College of Dance", "College of Glamour", "College of Lore", "College of Valor"],
+        "Cleric": ["Life Domain", "Light Domain", "Trickery Domain", "War Domain"],
+        "Druid": ["Circle of the Land", "Circle of the Moon", "Circle of the Sea", "Circle of the Stars"],
+        "Fighter": ["Battle Master", "Champion", "Eldritch Knight", "Psi Warrior"],
+        "Monk": ["Warrior of Mercy", "Warrior of Shadow", "Warrior of the Elements", "Warrior of the Open Hand"],
+        "Paladin": ["Oath of Devotion", "Oath of Glory", "Oath of the Ancients", "Oath of Vengeance"],
+        "Ranger": ["Beast Master", "Fey Wanderer", "Gloom Stalker", "Hunter"],
+        "Rogue": ["Arcane Trickster", "Assassin", "Soulknife", "Thief"],
+        "Sorcerer": ["Aberrant Sorcery", "Clockwork Sorcery", "Draconic Sorcery", "Wild Magic Sorcery"],
+        "Warlock": ["Archfey Patron", "Celestial Patron", "Fiend Patron", "Great Old One Patron"],
+        "Wizard": ["Abjurer", "Diviner", "Evoker", "Illusionist"]
+    }
+
+    def __init__(self, class_name, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"{class_name} Subclass")
+        self.setFixedSize(300, 150)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        
+        layout = QVBoxLayout(self)
+        
+        lbl = QLabel(f"Level 3 Reached!\nChoose your {class_name} subclass:")
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(lbl)
+        
+        self.dropdown = QComboBox()
+        subclasses = self.SUBCLASSES_2024.get(class_name, ["Default Subclass"])
+        self.dropdown.addItems(subclasses)
+        layout.addWidget(self.dropdown)
+        
+        btn_layout = QHBoxLayout()
+        ok_btn = QPushButton("Confirm")
+        ok_btn.clicked.connect(self.accept)
+        btn_layout.addStretch()
+        btn_layout.addWidget(ok_btn)
+        
+        layout.addLayout(btn_layout)
+
+    def get_subclass(self):
+        return self.dropdown.currentText()

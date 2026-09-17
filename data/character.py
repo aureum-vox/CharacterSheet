@@ -22,6 +22,9 @@ class Character:
         # Class tracking, supports multiclassing: { "Fighter": 5, "Wizard": 2 }
         self.classes = {}
 
+        # Tracks subclass choices: { "Monk": "Warrior of the Open Hand" }
+        self.subclasses = {}
+
         # --- PROFICIENCIES & SKILLS ---
         # Starting with standard Monk proficiencies for testing
         self.saving_throw_proficiencies = []
@@ -69,16 +72,20 @@ class Character:
             self.abilities[ability] = score
             logger.debug(f"{self.name}'s {ability} set to {score} (Mod: {self.get_modifier(ability)})")
 
-    def level_up_class(self, class_name, selected_skills=None):
+    def level_up_class(self, class_name, selected_skills=None, subclass_name=None):
         """Appends a class level, handles multiclassing, and calculates HP."""
         if class_name in self.classes:
             self.classes[class_name] += 1
         else:
             self.classes[class_name] = 1
             
+        # --- NEW: Store Subclass ---
+        if subclass_name:
+            self.subclasses[class_name] = subclass_name
+            
         total_level = sum(self.classes.values())
         
-        # --- NEW: Level 1 Proficiencies ---
+        # --- Level 1 Proficiencies ---
         if total_level == 1:
             # Map out standard class saving throws
             save_map = {
@@ -91,6 +98,10 @@ class Character:
             
             if selected_skills:
                 self.skill_proficiencies = selected_skills
+        # ----------------------------------
+        
+        # Determine Hit Die based on class
+        # ... (keep your existing hit die and HP math below here!) ...
 
        # Determine Hit Die based on class 
         hit_die_map = {"Barbarian": 12, "Fighter": 10, "Paladin": 10, "Ranger": 10, 
