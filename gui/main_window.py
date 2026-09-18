@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QMes
 from gui.ability_widget import AbilityWidget
 from gui.header_widget import HeaderWidget
 from gui.features_widget import FeaturesWidget
-from gui.level_up_dialog import LevelUpDialog, SubclassDialog
+from gui.level_up_dialog import LevelUpDialog, SubclassDialog, BackgroundDialog
 from gui.inventory_widget import InventoryWidget, AddItemDialog
 from gui.stats_widget import StatsWidget
 from gui.spells_widget import SpellsWidget 
@@ -119,10 +119,17 @@ class CharacterSheetWindow(QMainWindow):
         
         species_name = None
         subspecies_name = None
+        background_data = None # Holds our custom dictionary
+        
         if is_first_level:
             new_name = dialog.get_character_name()
             self.hero.name = new_name if new_name else "Unknown Hero"
             species_name = dialog.get_selected_species() 
+            
+            # --- NEW: Trigger Custom Background Dialog ---
+            bg_dialog = BackgroundDialog(self)
+            if bg_dialog.exec():
+                background_data = bg_dialog.get_background_data()
 
         species_with_subtypes = ["Goliath", "Dragonborn", "Elf", "Gnome", "Tiefling", "Aasimar"]
         
@@ -151,7 +158,8 @@ class CharacterSheetWindow(QMainWindow):
             selected_skills=selected_skills, 
             subclass_name=subclass_name,
             species_name=species_name, 
-            subspecies_name=subspecies_name
+            subspecies_name=subspecies_name,
+            background_data=background_data
         )
         new_level = self.hero.classes[class_name_formatted]
         
@@ -222,7 +230,7 @@ class CharacterSheetWindow(QMainWindow):
                 
         class_str = ", ".join(class_strings)
         
-        # --- NEW: Prepend Species ---
+        # --- Prepend Species ---
         if self.hero.species:
             class_str = f"{self.hero.species} {class_str}"
             
@@ -230,22 +238,15 @@ class CharacterSheetWindow(QMainWindow):
             class_str = "Level 0 (Ready to Start)"
         self.header.class_level_display.setText(class_str)
         
-        self.features_area.clear_features()
-        for feat in self.hero.features:
-            self.features_area.add_feature(
-                feat["name"], 
-                feat.get("source", ""),
-                feat.get("description", ""),
-                feat.get("uses", 0),
-                feat.get("choices", [])
-            )
-
         self.header.update_hp(self.hero.current_hp, self.hero.hp_max, self.hero.get_hit_dice_string())
+        
+        # --- SYNC ALL WIDGETS ---
         self.stats_area.sync_data(self.hero)
         self.inventory_area.sync_data(self.hero.coins, self.hero.inventory)
-        
-        # --- NEW: Sync Spellbook Tab ---
         self.spells_area.sync_spellbook(self.hero)
+        
+        # Use our new sync method instead of the manual loop!
+        self.features_area.sync_features(self.hero)
 
     # --- ACTION HANDLERS ---
     def toggle_save(self, stat):

@@ -94,12 +94,32 @@ class Character:
             self.abilities[ability] = score
             logger.debug(f"{self.name}'s {ability} set to {score} (Mod: {self.get_modifier(ability)})")
 
-    def level_up_class(self, class_name, selected_skills=None, subclass_name=None, species_name=None, subspecies_name=None):
+    def level_up_class(self, class_name, selected_skills=None, subclass_name=None, species_name=None, subspecies_name=None, background_data=None):
         """Appends a class level, handles multiclassing, and calculates HP."""
         if species_name:
             self.species = species_name
         if subspecies_name and species_name:
             self.subspecies[species_name] = subspecies_name
+
+        # --- PROCESS CUSTOM BACKGROUND ---
+        if background_data:
+            bg_name = background_data.get("name")
+            feat = background_data.get("feat")
+            stat_plus_2 = background_data.get("plus_2")
+            stat_plus_1 = background_data.get("plus_1")
+            
+            # 1. Apply Ability Score Increases safely
+            if stat_plus_2:
+                current_score = self.abilities.get(stat_plus_2, 10)
+                self.set_ability(stat_plus_2, current_score + 2)
+                
+            if stat_plus_1:
+                current_score = self.abilities.get(stat_plus_1, 10)
+                self.set_ability(stat_plus_1, current_score + 1)
+                
+            # 2. Add the UI Features
+            self.add_feature(f"Background: {bg_name}", "Custom", description=f"Granted +2 to {stat_plus_2} and +1 to {stat_plus_1}.")
+            self.add_feature(feat, "Origin Feat", description="Granted by your custom background.")
 
         if class_name in self.classes:
             self.classes[class_name] += 1
