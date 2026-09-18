@@ -7,14 +7,14 @@ class LevelUpDialog(QDialog):
         
         self.setWindowTitle("Level Up")
         
-        # --- Make the window taller at Level 1 to fit the skill list ---
-        self.setFixedSize(300, 450 if is_first_level else 150)
+        # --- Make the window taller at Level 1 to fit the skill list and species ---
+        self.setFixedSize(300, 520 if is_first_level else 150)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         
         layout = QVBoxLayout(self)
         self.is_first_level = is_first_level
         
-        # --- 1. Level 1 Setup (Name & Skills) ---
+        # --- 1. Level 1 Setup (Name, Species & Skills) ---
         if self.is_first_level:
             name_label = QLabel("Enter Character Name:")
             name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -24,6 +24,21 @@ class LevelUpDialog(QDialog):
             self.name_input.setPlaceholderText("e.g. Drizzt Do'Urden")
             layout.addWidget(self.name_input)
             layout.addSpacing(10)
+            
+            # --- NEW: Species Selector ---
+            species_label = QLabel("Select Species:")
+            species_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(species_label)
+            
+            self.species_combo = QComboBox()
+            # The 10 core Species in the 2024 Player's Handbook
+            self.species_combo.addItems([
+                "Aasimar", "Dragonborn", "Dwarf", "Elf", "Gnome", 
+                "Goliath", "Halfling", "Human", "Orc", "Tiefling"
+            ])
+            layout.addWidget(self.species_combo)
+            layout.addSpacing(10)
+            # -----------------------------
             
             # Skill Selector
             skill_label = QLabel("Select Starting Skills:")
@@ -86,6 +101,12 @@ class LevelUpDialog(QDialog):
             return [item.text() for item in self.skill_list.selectedItems()]
         return []
 
+    def get_selected_species(self):
+            """Returns the chosen species if it was selected, otherwise None."""
+            if hasattr(self, 'species_combo'):
+                return self.species_combo.currentText()
+            return None
+
 class SubclassDialog(QDialog):
     """Pops up when a character reaches Level 3 in a class."""
     
@@ -131,3 +152,6 @@ class SubclassDialog(QDialog):
 
     def get_subclass(self):
         return self.dropdown.currentText()
+
+
+    
