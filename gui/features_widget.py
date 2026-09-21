@@ -92,3 +92,64 @@ class FeaturesWidget(QFrame):
             child = self.scroll_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
+
+    def sync_features(self, character):
+        """Clears and rebuilds the features UI based on the character's backend state."""
+        self.clear_features()
+        
+        for feature in character.features:
+            self.add_feature(
+                feature_name=feature.get("name", "Unknown Feature"),
+                source=feature.get("source", ""),
+                description=feature.get("description", ""),
+                uses=feature.get("uses", 0),
+                choices=feature.get("choices", None)
+            )
+
+    def add_feature(self, feature_name, source="", description="", uses=0, choices=None):
+        """Adds a new feature container with a header row and an inline description block."""
+        feature_container = QWidget()
+        container_layout = QVBoxLayout(feature_container)
+        container_layout.setContentsMargins(0, 0, 0, 15)
+        
+        header_row = QWidget()
+        header_layout = QHBoxLayout(header_row)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # --- ADD SOURCE BADGE TO THE NAME ---
+        text = f"• <b>{feature_name}</b>"
+        if source:
+            # Adds a subtle gray tag indicating where the feature came from
+            text += f" &nbsp;<span style='color: #7f8c8d; font-size: 10pt;'>[{source}]</span>"
+            
+        feature_label = QLabel(text)
+        feature_label.setTextFormat(Qt.TextFormat.RichText) # Ensure HTML renders
+        feature_label.setMinimumWidth(150)
+        header_layout.addWidget(feature_label)
+        
+        if choices:
+            dropdown = QComboBox()
+            dropdown.addItems(choices)
+            dropdown.insertItem(0, f"Select a {feature_name}...") 
+            dropdown.setCurrentIndex(0)
+            header_layout.addWidget(dropdown)
+        
+        header_layout.addStretch()
+        
+        if uses > 0:
+            for _ in range(uses):
+                checkbox = QCheckBox()
+                header_layout.addWidget(checkbox)
+                
+        container_layout.addWidget(header_row)
+        
+        if description:
+            # Convert python newlines to HTML breaks so 5etools formatting looks clean
+            formatted_desc = description.replace("\n", "<br>")
+            desc_label = QLabel(formatted_desc)
+            desc_label.setTextFormat(Qt.TextFormat.RichText)
+            desc_label.setWordWrap(True)
+            desc_label.setContentsMargins(15, 5, 0, 0)
+            container_layout.addWidget(desc_label)
+            
+        self.scroll_layout.addWidget(feature_container)
